@@ -22,23 +22,38 @@ class BookCard extends StatefulWidget {
 class _BookCardState extends State<BookCard> {
   Uint8List? _imageData;
   bool _loadingImage = false;
+  String? _currentImageUrl;
 
   @override
   void initState() {
     super.initState();
-    if (kIsWeb && widget.book.imageUrl != null && widget.book.imageUrl!.isNotEmpty) {
-      _loadImage();
+    _currentImageUrl = widget.book.imageUrl;
+    if (kIsWeb && _currentImageUrl != null && _currentImageUrl!.isNotEmpty) {
+      _loadImage(_currentImageUrl!);
     }
   }
 
-  Future<void> _loadImage() async {
-    if (_loadingImage || _imageData != null) return;
+  @override
+  void didUpdateWidget(BookCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Si cambió la URL de la imagen, recargarla
+    if (widget.book.imageUrl != _currentImageUrl) {
+      _currentImageUrl = widget.book.imageUrl;
+      _imageData = null;
+      if (kIsWeb && _currentImageUrl != null && _currentImageUrl!.isNotEmpty) {
+        _loadImage(_currentImageUrl!);
+      }
+    }
+  }
+
+  Future<void> _loadImage(String imageUrl) async {
+    if (_loadingImage) return;
     
     setState(() => _loadingImage = true);
     
     try {
-      final response = await http.get(Uri.parse(widget.book.imageUrl!));
-      if (response.statusCode == 200) {
+      final response = await http.get(Uri.parse(imageUrl));
+      if (response.statusCode == 200 && mounted) {
         setState(() {
           _imageData = response.bodyBytes;
         });
@@ -46,7 +61,9 @@ class _BookCardState extends State<BookCard> {
     } catch (e) {
       print('Error cargando imagen: $e');
     } finally {
-      setState(() => _loadingImage = false);
+      if (mounted) {
+        setState(() => _loadingImage = false);
+      }
     }
   }
 

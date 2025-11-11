@@ -24,31 +24,46 @@ class BookDetailScreen extends StatefulWidget {
 class _BookDetailScreenState extends State<BookDetailScreen> {
   Uint8List? _imageData;
   bool _loadingImage = false;
+  String? _currentImageUrl;
 
   @override
   void initState() {
     super.initState();
-    if (widget.book.imageUrl != null && widget.book.imageUrl!.isNotEmpty) {
-      _loadImage();
+    _currentImageUrl = widget.book.imageUrl;
+    if (_currentImageUrl != null && _currentImageUrl!.isNotEmpty) {
+      _loadImage(_currentImageUrl!);
     }
   }
 
-  Future<void> _loadImage() async {
-    if (_loadingImage || _imageData != null) return;
+  Future<void> _loadImage(String imageUrl) async {
+    if (_loadingImage) return;
     
     setState(() => _loadingImage = true);
     
     try {
-      final response = await http.get(Uri.parse(widget.book.imageUrl!));
-      if (response.statusCode == 200) {
+      final response = await http.get(Uri.parse(imageUrl));
+      if (response.statusCode == 200 && mounted) {
         setState(() {
           _imageData = response.bodyBytes;
+          _currentImageUrl = imageUrl;
         });
       }
     } catch (e) {
       print('Error cargando imagen detalle: $e');
     } finally {
-      setState(() => _loadingImage = false);
+      if (mounted) {
+        setState(() => _loadingImage = false);
+      }
+    }
+  }
+
+  // Recargar imagen si cambió la URL
+  void _checkAndReloadImage(String? newImageUrl) {
+    if (newImageUrl != null && 
+        newImageUrl.isNotEmpty && 
+        newImageUrl != _currentImageUrl) {
+      _imageData = null;
+      _loadImage(newImageUrl);
     }
   }
 
@@ -75,149 +90,163 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       appBar: AppBar(
         title: const Text('Detalles del Libro'),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Imagen del libro
-            Container(
-              width: double.infinity,
-              height: 400,
-              color: AppConstants.secondaryColor,
-              child: widget.book.imageUrl != null && widget.book.imageUrl!.isNotEmpty
-                  ? _buildImage()
-                  : const Icon(Icons.book, size: 100, color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-            
-            // Información del libro
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Título
-                  Text(
-                    widget.book.title,
-                    style: Theme.of(context).textTheme.displayMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  
-                  // Autor
-                  Text(
-                    'por ${widget.book.author}',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Categoría y Estado
-                  Row(
+      body: Consumer<BookProvider>(
+        builder: (context, bookProvider, _) {
+          // Buscar el libro actualizado desde el provider
+          final updatedBook = bookProvider.books.firstWhere(
+            (b) => b.id == widget.book.id,
+            orElse: () => widget.book,
+          );
+          
+          // Verificar si cambió la imagen y recargarla
+          _checkAndReloadImage(updatedBook.imageUrl);
+          
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Imagen del libro
+                Container(
+                  width: double.infinity,
+                  height: 400,
+                  color: AppConstants.secondaryColor,
+                  child: updatedBook.imageUrl != null && updatedBook.imageUrl!.isNotEmpty
+                      ? _buildImage()
+                      : const Icon(Icons.book, size: 100, color: Colors.grey),
+                ),
+                const SizedBox(height: 24),
+                
+                // Información del libro
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppConstants.primaryColor.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          widget.book.category,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppConstants.primaryColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
+                      // Título
+                      Text(
+                        updatedBook.title,
+                        style: Theme.of(context).textTheme.displayMedium,
                       ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: widget.book.status == 'Leído'
-                              ? Colors.green.withOpacity(0.2)
-                              : Colors.orange.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          widget.book.status,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: widget.book.status == 'Leído'
-                                    ? Colors.green[700]
-                                    : Colors.orange[700],
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
+                      const SizedBox(height: 8),
+                      
+                      // Autor
+                      Text(
+                        'por ${updatedBook.author}',
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  
-                  // Descripción
-                  Text(
-                    'Descripción',
-                    style: Theme.of(context).textTheme.displaySmall,
-                  ),
-                  const SizedBox(height: 12),
-                  
-                  Text(
-                    widget.book.description,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 32),
-                  
-                  // Botones de acción
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomButton(
-                          text: 'Editar',
-                          onPressed: () {
-                            final userId = context.read<AuthProvider>().user?.id;
-                            if (userId != null) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => AddEditBookScreen(
-                                    userId: userId,
-                                    book: widget.book,
+                      const SizedBox(height: 16),
+                      
+                      // Categoría y Estado
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppConstants.primaryColor.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              updatedBook.category,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppConstants.primaryColor,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                ),
-                              );
-                            }
-                          },
-                          isOutlined: true,
-                        ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: updatedBook.status == 'Leído'
+                                  ? Colors.green.withOpacity(0.2)
+                                  : Colors.orange.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              updatedBook.status,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: updatedBook.status == 'Leído'
+                                        ? Colors.green[700]
+                                        : Colors.orange[700],
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: CustomButton(
-                          text: 'Eliminar',
-                          onPressed: () => _confirmDelete(context),
-                          backgroundColor: AppConstants.errorColor,
-                          textColor: Colors.white,
-                        ),
+                      const SizedBox(height: 24),
+                      
+                      // Descripción
+                      Text(
+                        'Descripción',
+                        style: Theme.of(context).textTheme.displaySmall,
                       ),
+                      const SizedBox(height: 12),
+                      
+                      Text(
+                        updatedBook.description,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 32),
+                      
+                      // Botones de acción
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomButton(
+                              text: 'Editar',
+                              onPressed: () async {
+                                final userId = context.read<AuthProvider>().user?.id;
+                                if (userId != null) {
+                                  await Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => AddEditBookScreen(
+                                        userId: userId,
+                                        book: updatedBook,
+                                      ),
+                                    ),
+                                  );
+                                  // Después de editar, el Consumer se actualizará automáticamente
+                                }
+                              },
+                              isOutlined: true,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: CustomButton(
+                              text: 'Eliminar',
+                              onPressed: () => _confirmDelete(context, updatedBook),
+                              backgroundColor: AppConstants.errorColor,
+                              textColor: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
                     ],
                   ),
-                  const SizedBox(height: 32),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  void _confirmDelete(BuildContext context) {
+  void _confirmDelete(BuildContext context, BookModel book) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Eliminar libro'),
-        content: Text('¿Estás seguro de que deseas eliminar "${widget.book.title}"?'),
+        content: Text('¿Estás seguro de que deseas eliminar "${book.title}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -228,7 +257,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               Navigator.pop(context);
               
               final bookProvider = context.read<BookProvider>();
-              final success = await bookProvider.deleteBook(widget.book);
+              final success = await bookProvider.deleteBook(book);
               
               if (context.mounted) {
                 if (success) {

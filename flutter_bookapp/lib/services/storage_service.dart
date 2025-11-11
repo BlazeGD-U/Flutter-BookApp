@@ -14,21 +14,23 @@ class StorageService {
       final ref = _storage.ref().child('profile_images').child(userId).child(fileName);
       
       UploadTask uploadTask;
-      if (kIsWeb && imageFile is Uint8List) {
+      if (imageFile is Uint8List) {
+        // Para web o cuando se pasa Uint8List directamente
         uploadTask = ref.putData(
           imageFile,
           SettableMetadata(contentType: 'image/jpeg'),
         );
-      } else if (!kIsWeb && imageFile is File) {
+      } else if (imageFile is File) {
+        // Para mobile o cuando se pasa File
         uploadTask = ref.putFile(
           imageFile,
           SettableMetadata(contentType: 'image/jpeg'),
         );
       } else {
-        throw 'Tipo de archivo no válido';
+        throw 'Tipo de archivo no válido: ${imageFile.runtimeType}';
       }
       
-      final snapshot = await uploadTask.whenComplete(() => null);
+      final snapshot = await uploadTask;
       final downloadUrl = await snapshot.ref.getDownloadURL();
       
       return downloadUrl;
@@ -43,21 +45,23 @@ class StorageService {
       final ref = _storage.ref().child('book_images').child(fileName);
       
       UploadTask uploadTask;
-      if (kIsWeb && imageFile is Uint8List) {
+      if (imageFile is Uint8List) {
+        // Para web o cuando se pasa Uint8List directamente
         uploadTask = ref.putData(
           imageFile,
           SettableMetadata(contentType: 'image/jpeg'),
         );
-      } else if (!kIsWeb && imageFile is File) {
+      } else if (imageFile is File) {
+        // Para mobile o cuando se pasa File
         uploadTask = ref.putFile(
           imageFile,
           SettableMetadata(contentType: 'image/jpeg'),
         );
       } else {
-        throw 'Tipo de archivo no válido';
+        throw 'Tipo de archivo no válido: ${imageFile.runtimeType}';
       }
       
-      final snapshot = await uploadTask.whenComplete(() => null);
+      final snapshot = await uploadTask;
       final downloadUrl = await snapshot.ref.getDownloadURL();
       
       return downloadUrl;

@@ -1,0 +1,64 @@
+{
+  "recommendations": {
+    "rec_001": {
+      "title": "Dune",
+      "author": "Frank Herbert",
+      "category": "Ciencia Ficción",
+      "status": "Pendiente",
+      "description": "En el desértico planeta Arrakis, el joven Paul Atreides deberá enfrentarse a intrigas políticas, traiciones y el destino que le aguarda como líder de una revolución galáctica. Una obra maestra de la ciencia ficción que explora temas de ecología, religión y poder.",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bookapp-3b63f.appspot.com/o/dune_.jpg?alt=media",
+      "createdAt": "2025-01-01T10:00:00.000Z",
+      "updatedAt": "2025-01-01T10:00:00.000Z"
+    },
+    "rec_002": {
+      "title": "The Silent Patient",
+      "author": "Alex Michaelides",
+      "category": "Psychological Thriller",
+      "status": "Pendiente",
+      "description": "Alicia Berenson, una pintora de éxito, dispara a su marido Gabriel cinco veces en la cara y luego nunca vuelve a hablar. Un psicoterapeuta obsesionado con descubrir la verdad comienza a tratarla. Un thriller psicológico adictivo con un giro final impactante.",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bookapp-3b63f.appspot.com/o/The_silent_patient.jpg?alt=media",
+      "createdAt": "2025-01-02T10:00:00.000Z",
+      "updatedAt": "2025-01-02T10:00:00.000Z"
+    },
+    "rec_003": {
+      "title": "El código Da Vinci",
+      "author": "Dan Brown",
+      "category": "Thriller",
+      "status": "Pendiente",
+      "description": "Un asesinato en el Museo del Louvre desencadena una búsqueda frenética de un secreto que podría cambiar la historia del cristianismo. Robert Langdon se ve envuelto en un misterio que le llevará a través de Europa descubriendo símbolos ocultos y antiguas conspiraciones.",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bookapp-3b63f.appspot.com/o/codigo_da_vinci.jpg?alt=media",
+      "createdAt": "2025-01-03T10:00:00.000Z",
+      "updatedAt": "2025-01-03T10:00:00.000Z"
+    },
+    "rec_004": {
+      "title": "Cien años de soledad",
+      "author": "Gabriel García Márquez",
+      "category": "Fantasía",
+      "status": "Pendiente",
+      "description": "La historia épica de la familia Buendía a lo largo de varias generaciones en el mítico pueblo de Macondo. Una obra maestra del realismo mágico que narra los amores, las guerras y las maldiciones de una familia inolvidable.",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bookapp-3b63f.appspot.com/o/cien_a%C3%B1os_de_soledad.jpg?alt=media",
+      "createdAt": "2025-01-04T10:00:00.000Z",
+      "updatedAt": "2025-01-04T10:00:00.000Z"
+    },
+    "rec_005": {
+      "title": "Sapiens: De animales a dioses",
+      "author": "Yuval Noah Harari",
+      "category": "Historia",
+      "status": "Pendiente",
+      "description": "Una breve historia de la humanidad que explora cómo el Homo sapiens llegó a dominar el mundo. Harari examina la evolución del ser humano desde la Edad de Piedra hasta la actualidad, explorando cómo la biología y la historia nos han definido.",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bookapp-3b63f.appspot.com/o/Sapiens.jpg?alt=media",
+      "createdAt": "2025-01-05T10:00:00.000Z",
+      "updatedAt": "2025-01-05T10:00:00.000Z"
+    },
+    "rec_006": {
+      "title": "El poder del ahora",
+      "author": "Eckhart Tolle",
+      "category": "Autoayuda",
+      "status": "Pendiente",
+      "description": "Una guía espiritual para alcanzar la iluminación y vivir en el momento presente. Tolle enseña a liberarse de los patrones mentales negativos y a encontrar la paz interior a través de la conciencia plena del ahora.",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/bookapp-3b63f.appspot.com/o/El_poder_del_ahora.jpg?alt=media",
+      "createdAt": "2025-01-06T10:00:00.000Z",
+      "updatedAt": "2025-01-06T10:00:00.000Z"
+    }
+  }
+}

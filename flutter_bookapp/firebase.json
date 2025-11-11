@@ -1,0 +1,19 @@
+{
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "bookapp-3b63f",
+          "appId": "1:51683768193:android:2f99244bae73624634da80",
+          "fileOutput": "android/app/google-services.json"
+        }
+      }
+    }
+  }
+}
