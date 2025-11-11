@@ -72,10 +72,34 @@ class StorageService {
 
   Future<void> deleteImage(String imageUrl) async {
     try {
+      // Validar que la URL no esté vacía
+      if (imageUrl.isEmpty) {
+        print('URL de imagen vacía, no hay nada que eliminar');
+        return;
+      }
+
+      // Obtener referencia desde la URL
       final ref = _storage.refFromURL(imageUrl);
+      
+      // Intentar eliminar el archivo
       await ref.delete();
+      print('Imagen eliminada exitosamente: $imageUrl');
+    } on FirebaseException catch (e) {
+      // Manejar errores específicos de Firebase
+      if (e.code == 'object-not-found') {
+        print('La imagen ya no existe en Storage: $imageUrl');
+        // No lanzar error, ya que el objetivo (que no exista) se cumplió
+      } else if (e.code == 'unauthorized') {
+        print('No tienes permisos para eliminar esta imagen: $imageUrl');
+        // No lanzar error para no bloquear la eliminación del libro
+      } else {
+        print('Error de Firebase al eliminar imagen: ${e.code} - ${e.message}');
+        // No lanzar error para no bloquear la eliminación del libro
+      }
     } catch (e) {
-      print('Error al eliminar imagen: ${e.toString()}');
+      // Cualquier otro error
+      print('Error inesperado al eliminar imagen: ${e.toString()}');
+      // No lanzar error para no bloquear la eliminación del libro
     }
   }
 

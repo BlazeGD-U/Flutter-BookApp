@@ -1,16 +1,35 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Permitir que usuarios autenticados suban imágenes de perfil
+    // Reglas para imágenes de perfil
     match /profile_images/{userId}/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId && request.resource.size < 5 * 1024 * 1024;
+      
+      // Permitir subir solo con validación de tamaño
+      allow create, update: if request.auth != null 
+                            && request.auth.uid == userId 
+                            && request.resource.size < 5 * 1024 * 1024;
+      
+      // Permitir eliminar sin validación de tamaño (request.resource es null en delete)
+      allow delete: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Permitir que usuarios autenticados suban imágenes de libros
+    // Reglas para imágenes de libros
     match /book_images/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null && request.resource.size < 5 * 1024 * 1024;
+      
+      // Permitir subir solo con validación de tamaño
+      allow create, update: if request.auth != null 
+                            && request.resource.size < 5 * 1024 * 1024;
+      
+      // Permitir eliminar sin validación de tamaño (request.resource es null en delete)
+      allow delete: if request.auth != null;
+    }
+
+    // Permitir lectura de archivos en la raíz (para imágenes de recomendaciones)
+    match /{imageFile} {
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
     // Denegar acceso a cualquier otra ruta por defecto

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../models/book_model.dart';
 import '../services/database_service.dart';
@@ -181,11 +180,18 @@ class BookProvider with ChangeNotifier {
 
       // Si hay nueva imagen, subir y eliminar la anterior
       if (imageFile != null) {
+        print('Subiendo nueva imagen del libro...');
+        // Primero subir la nueva imagen
         imageUrl = await _storageService.uploadBookImage(imageFile);
+        print('Nueva imagen subida exitosamente: $imageUrl');
         
-        // Eliminar imagen anterior si existe
-        if (book.imageUrl != null) {
+        // Eliminar imagen anterior si existe y es diferente a la nueva
+        if (book.imageUrl != null && 
+            book.imageUrl!.isNotEmpty && 
+            book.imageUrl != imageUrl) {
+          print('Eliminando imagen anterior: ${book.imageUrl}');
           await _storageService.deleteImage(book.imageUrl!);
+          print('Imagen anterior eliminada');
         }
       }
 
@@ -198,7 +204,9 @@ class BookProvider with ChangeNotifier {
         imageUrl: imageUrl,
       );
 
+      print('Actualizando libro en la base de datos...');
       await _databaseService.updateBook(updatedBook);
+      print('Libro actualizado exitosamente: ${updatedBook.title}');
 
       _isLoading = false;
       notifyListeners();
@@ -207,6 +215,7 @@ class BookProvider with ChangeNotifier {
       _error = e.toString();
       _isLoading = false;
       notifyListeners();
+      print('Error al actualizar libro: ${e.toString()}');
       return false;
     }
   }
@@ -218,20 +227,29 @@ class BookProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      // Eliminar imagen si existe
-      if (book.imageUrl != null) {
+      // Intentar eliminar imagen si existe
+      // Nota: deleteImage() no lanza excepciones para no bloquear la eliminación del libro
+      if (book.imageUrl != null && book.imageUrl!.isNotEmpty) {
+        print('Eliminando imagen del libro: ${book.imageUrl}');
         await _storageService.deleteImage(book.imageUrl!);
+      } else {
+        print('El libro no tiene imagen asociada para eliminar');
       }
 
+      // Eliminar el libro de la base de datos
+      // Esto se ejecuta incluso si falla la eliminación de la imagen
+      print('Eliminando libro de la base de datos: ${book.id}');
       await _databaseService.deleteBook(book.id);
 
       _isLoading = false;
       notifyListeners();
+      print('Libro eliminado exitosamente: ${book.title}');
       return true;
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
       notifyListeners();
+      print('Error al eliminar libro: ${e.toString()}');
       return false;
     }
   }

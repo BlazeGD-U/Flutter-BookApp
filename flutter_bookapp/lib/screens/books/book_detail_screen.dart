@@ -61,8 +61,14 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   void _checkAndReloadImage(String? newImageUrl) {
     if (newImageUrl != null && 
         newImageUrl.isNotEmpty && 
-        newImageUrl != _currentImageUrl) {
-      _imageData = null;
+        newImageUrl != _currentImageUrl &&
+        !_loadingImage) {
+      // Limpiar imagen anterior y cargar la nueva
+      if (mounted) {
+        setState(() {
+          _imageData = null;
+        });
+      }
       _loadImage(newImageUrl);
     }
   }
@@ -98,8 +104,11 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             orElse: () => widget.book,
           );
           
-          // Verificar si cambió la imagen y recargarla
-          _checkAndReloadImage(updatedBook.imageUrl);
+          // Verificar si cambió la imagen y recargarla (solo si es diferente)
+          // Usamos WidgetsBinding para evitar llamadas múltiples durante el build
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _checkAndReloadImage(updatedBook.imageUrl);
+          });
           
           return SingleChildScrollView(
             child: Column(
@@ -241,47 +250,66 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     );
   }
 
-  void _confirmDelete(BuildContext context, BookModel book) {
-    showDialog(
+  Future<void> _confirmDelete(BuildContext context, BookModel book) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Eliminar libro'),
         content: Text('¿Estás seguro de que deseas eliminar "${book.title}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Cancelar'),
           ),
           TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              
-              final bookProvider = context.read<BookProvider>();
-              final success = await bookProvider.deleteBook(book);
-              
-              if (context.mounted) {
-                if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Libro eliminado correctamente'),
-                    ),
-                  );
-                  Navigator.pop(context);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(bookProvider.error ?? 'Error al eliminar el libro'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
+            onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
+
+    // Si el usuario confirmó la eliminación
+    if (confirmed == true && mounted) {
+      // Mostrar indicador de carga
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      final bookProvider = context.read<BookProvider>();
+      final success = await bookProvider.deleteBook(book);
+      
+      if (!mounted) return;
+      
+      // Cerrar indicador de carga
+      Navigator.of(context).pop();
+      
+      if (success) {
+        // Cerrar la pantalla de detalle y volver a la lista
+        Navigator.of(context).pop();
+        
+        // Mostrar mensaje de éxito
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Libro eliminado correctamente'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else {
+        // Mostrar error sin cerrar la pantalla de detalle
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(bookProvider.error ?? 'Error al eliminar el libro'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 }
 
