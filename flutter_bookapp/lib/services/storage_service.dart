@@ -1,20 +1,32 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 class StorageService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final Uuid _uuid = const Uuid();
 
-  Future<String> uploadProfileImage(File imageFile, String userId) async {
+  Future<String> uploadProfileImage(dynamic imageFile, String userId) async {
     try {
       final fileName = 'profile_$userId.jpg';
-      final ref = _storage.ref().child('profile_images').child(fileName);
+      final ref = _storage.ref().child('profile_images').child(userId).child(fileName);
       
-      final uploadTask = ref.putFile(
-        imageFile,
-        SettableMetadata(contentType: 'image/jpeg'),
-      );
+      UploadTask uploadTask;
+      if (kIsWeb && imageFile is Uint8List) {
+        uploadTask = ref.putData(
+          imageFile,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+      } else if (!kIsWeb && imageFile is File) {
+        uploadTask = ref.putFile(
+          imageFile,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+      } else {
+        throw 'Tipo de archivo no válido';
+      }
       
       final snapshot = await uploadTask.whenComplete(() => null);
       final downloadUrl = await snapshot.ref.getDownloadURL();
@@ -25,15 +37,25 @@ class StorageService {
     }
   }
 
-  Future<String> uploadBookImage(File imageFile) async {
+  Future<String> uploadBookImage(dynamic imageFile) async {
     try {
       final fileName = '${_uuid.v4()}.jpg';
       final ref = _storage.ref().child('book_images').child(fileName);
       
-      final uploadTask = ref.putFile(
-        imageFile,
-        SettableMetadata(contentType: 'image/jpeg'),
-      );
+      UploadTask uploadTask;
+      if (kIsWeb && imageFile is Uint8List) {
+        uploadTask = ref.putData(
+          imageFile,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+      } else if (!kIsWeb && imageFile is File) {
+        uploadTask = ref.putFile(
+          imageFile,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+      } else {
+        throw 'Tipo de archivo no válido';
+      }
       
       final snapshot = await uploadTask.whenComplete(() => null);
       final downloadUrl = await snapshot.ref.getDownloadURL();

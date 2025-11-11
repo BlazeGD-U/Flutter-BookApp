@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/book_provider.dart';
@@ -41,8 +42,50 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  Timer? _notificationCheckTimer;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // Si el usuario está autenticado, iniciar verificación periódica
+    if (authProvider.isAuthenticated && authProvider.user != null) {
+      _startNotificationCheck(authProvider.user!.id);
+    }
+  }
+
+  void _startNotificationCheck(String userId) {
+    // Verificar notificaciones inmediatamente
+    _checkNotifications(userId);
+    
+    // Luego verificar cada 30 minutos (para detectar cambios frecuentes)
+    _notificationCheckTimer = Timer.periodic(
+      const Duration(minutes: 30),
+      (_) => _checkNotifications(userId),
+    );
+  }
+
+  void _checkNotifications(String userId) {
+    final notificationProvider = 
+        Provider.of<NotificationProvider>(context, listen: false);
+    notificationProvider.checkPendingBooks(userId);
+  }
+
+  @override
+  void dispose() {
+    _notificationCheckTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

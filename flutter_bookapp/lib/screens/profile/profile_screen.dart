@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../utils/constants.dart';
@@ -72,80 +71,107 @@ class ProfileScreen extends StatelessWidget {
           }
 
           return SingleChildScrollView(
-            child: Column(
-              children: [
-                const SizedBox(height: 32),
-                
-                // Foto de perfil
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppConstants.secondaryColor,
-                  ),
-                  child: user.photoUrl != null
-                      ? ClipOval(
-                          child: CachedNetworkImage(
-                            imageUrl: user.photoUrl!,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.person, size: 60),
-                          ),
-                        )
-                      : const Icon(Icons.person, size: 60, color: Colors.grey),
-                ),
-                const SizedBox(height: 16),
-                
-                // Nombre
-                Text(
-                  user.name,
-                  style: Theme.of(context).textTheme.displaySmall,
-                ),
-                const SizedBox(height: 4),
-                
-                // Email
-                Text(
-                  user.email,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 32),
-                
-                // Botón de editar perfil
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.edit_outlined),
-                    label: const Text('Editar perfil'),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const EditProfileScreen(),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 48),
+                  
+                  // Foto de perfil (más grande)
+                  Container(
+                    width: 160,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppConstants.secondaryColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
-                      );
-                    },
+                      ],
+                    ),
+                    child: user.photoUrl != null && user.photoUrl!.isNotEmpty
+                        ? ClipOval(
+                            child: Image.network(
+                              user.photoUrl!,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return const Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.person, size: 80, color: Colors.grey);
+                              },
+                            ),
+                          )
+                        : const Icon(Icons.person, size: 80, color: Colors.grey),
                   ),
-                ),
-                const SizedBox(height: 16),
-                
-                // Botón de cerrar sesión
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.logout),
-                    label: const Text('Cerrar sesión'),
-                    onPressed: () => _confirmLogout(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppConstants.primaryColor,
-                      foregroundColor: AppConstants.textPrimaryColor,
+                  const SizedBox(height: 24),
+                  
+                  // Nombre
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      user.name,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                ),
-                const SizedBox(height: 32),
-              ],
+                  const SizedBox(height: 8),
+                  
+                  // Email
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      user.email,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey[600],
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 48),
+                  
+                  // Botón de editar perfil
+                  SizedBox(
+                    width: 200,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.edit_outlined),
+                      label: const Text('Editar perfil'),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const EditProfileScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Botón de cerrar sesión
+                  SizedBox(
+                    width: 200,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.logout),
+                      label: const Text('Cerrar sesión'),
+                      onPressed: () => _confirmLogout(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppConstants.primaryColor,
+                        foregroundColor: AppConstants.textPrimaryColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 48),
+                ],
+              ),
             ),
           );
         },

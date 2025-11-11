@@ -80,8 +80,8 @@ class BookModel {
 
   bool isPendingForTooLong() {
     if (status != 'Pendiente') return false;
-    final daysDifference = DateTime.now().difference(updatedAt).inDays;
-    return daysDifference >= 5;
+    final hoursDifference = DateTime.now().difference(updatedAt).inHours;
+    return hoursDifference >= 48;
   }
 }
 

@@ -67,6 +67,21 @@ class AuthService {
             snapshot.value as Map<dynamic, dynamic>,
             userCredential.user!.uid,
           );
+        } else {
+          // Si no existe el usuario en la base de datos, crear uno por defecto
+          final user = UserModel(
+            id: userCredential.user!.uid,
+            name: userCredential.user!.displayName ?? 'Usuario',
+            email: email,
+            createdAt: DateTime.now(),
+          );
+          
+          await _database
+              .child(AppConstants.usersPath)
+              .child(user.id)
+              .set(user.toMap());
+          
+          return user;
         }
       }
     } on FirebaseAuthException catch (e) {

@@ -123,7 +123,7 @@ class BookProvider with ChangeNotifier {
     required String category,
     required String status,
     required String description,
-    File? imageFile,
+    dynamic imageFile, // Puede ser File o Uint8List
   }) async {
     try {
       _isLoading = true;
@@ -148,6 +148,7 @@ class BookProvider with ChangeNotifier {
         updatedAt: DateTime.now(),
       );
 
+      print('DEBUG: Guardando libro en base de datos. Datos: ${book.toMap()}');
       await _databaseService.addBook(book);
 
       _isLoading = false;
@@ -169,7 +170,7 @@ class BookProvider with ChangeNotifier {
     required String category,
     required String status,
     required String description,
-    File? imageFile,
+    dynamic imageFile, // Puede ser File o Uint8List
   }) async {
     try {
       _isLoading = true;

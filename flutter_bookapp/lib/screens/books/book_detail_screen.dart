@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/book_model.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -8,13 +9,65 @@ import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
 import 'add_edit_book_screen.dart';
 
-class BookDetailScreen extends StatelessWidget {
+class BookDetailScreen extends StatefulWidget {
   final BookModel book;
 
   const BookDetailScreen({
     super.key,
     required this.book,
   });
+
+  @override
+  State<BookDetailScreen> createState() => _BookDetailScreenState();
+}
+
+class _BookDetailScreenState extends State<BookDetailScreen> {
+  Uint8List? _imageData;
+  bool _loadingImage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.book.imageUrl != null && widget.book.imageUrl!.isNotEmpty) {
+      _loadImage();
+    }
+  }
+
+  Future<void> _loadImage() async {
+    if (_loadingImage || _imageData != null) return;
+    
+    setState(() => _loadingImage = true);
+    
+    try {
+      final response = await http.get(Uri.parse(widget.book.imageUrl!));
+      if (response.statusCode == 200) {
+        setState(() {
+          _imageData = response.bodyBytes;
+        });
+      }
+    } catch (e) {
+      print('Error cargando imagen detalle: $e');
+    } finally {
+      setState(() => _loadingImage = false);
+    }
+  }
+
+  Widget _buildImage() {
+    if (_loadingImage) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_imageData != null) {
+      return Image.memory(
+        _imageData!,
+        fit: BoxFit.contain,
+      );
+    }
+
+    return const Icon(Icons.book, size: 100, color: Colors.grey);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,16 +84,8 @@ class BookDetailScreen extends StatelessWidget {
               width: double.infinity,
               height: 400,
               color: AppConstants.secondaryColor,
-              child: book.imageUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: book.imageUrl!,
-                      fit: BoxFit.contain,
-                      placeholder: (context, url) => const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.book, size: 100),
-                    )
+              child: widget.book.imageUrl != null && widget.book.imageUrl!.isNotEmpty
+                  ? _buildImage()
                   : const Icon(Icons.book, size: 100, color: Colors.grey),
             ),
             const SizedBox(height: 24),
@@ -53,14 +98,14 @@ class BookDetailScreen extends StatelessWidget {
                 children: [
                   // Título
                   Text(
-                    book.title,
+                    widget.book.title,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 8),
                   
                   // Autor
                   Text(
-                    'por ${book.author}',
+                    'por ${widget.book.author}',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 16),
@@ -78,7 +123,7 @@ class BookDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          book.category,
+                          widget.book.category,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppConstants.primaryColor,
                                 fontWeight: FontWeight.w600,
@@ -92,15 +137,15 @@ class BookDetailScreen extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: book.status == 'Leído'
+                          color: widget.book.status == 'Leído'
                               ? Colors.green.withOpacity(0.2)
                               : Colors.orange.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          book.status,
+                          widget.book.status,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: book.status == 'Leído'
+                                color: widget.book.status == 'Leído'
                                     ? Colors.green[700]
                                     : Colors.orange[700],
                                 fontWeight: FontWeight.w600,
@@ -119,7 +164,7 @@ class BookDetailScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   
                   Text(
-                    book.description,
+                    widget.book.description,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 32),
@@ -137,7 +182,7 @@ class BookDetailScreen extends StatelessWidget {
                                 MaterialPageRoute(
                                   builder: (_) => AddEditBookScreen(
                                     userId: userId,
-                                    book: book,
+                                    book: widget.book,
                                   ),
                                 ),
                               );
@@ -172,7 +217,7 @@ class BookDetailScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Eliminar libro'),
-        content: Text('¿Estás seguro de que deseas eliminar "${book.title}"?'),
+        content: Text('¿Estás seguro de que deseas eliminar "${widget.book.title}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -183,7 +228,7 @@ class BookDetailScreen extends StatelessWidget {
               Navigator.pop(context);
               
               final bookProvider = context.read<BookProvider>();
-              final success = await bookProvider.deleteBook(book);
+              final success = await bookProvider.deleteBook(widget.book);
               
               if (context.mounted) {
                 if (success) {

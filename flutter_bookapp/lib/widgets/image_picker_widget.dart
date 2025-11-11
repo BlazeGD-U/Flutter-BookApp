@@ -1,12 +1,14 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../utils/constants.dart';
 
 class ImagePickerWidget extends StatelessWidget {
-  final File? imageFile;
+  final dynamic imageFile; // File en mobile, Uint8List en web
   final String? imageUrl;
-  final Function(File) onImagePicked;
+  final Function(dynamic) onImagePicked; // Acepta File o Uint8List
   final String placeholder;
   final double width;
   final double height;
@@ -26,26 +28,31 @@ class ImagePickerWidget extends StatelessWidget {
   Future<void> _pickImage(BuildContext context) async {
     final ImagePicker picker = ImagePicker();
     
-    // Mostrar opciones
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Galería'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Cámara'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-          ],
+    // Mostrar opciones (solo para mobile)
+    ImageSource? source;
+    if (kIsWeb) {
+      source = ImageSource.gallery;
+    } else {
+      source = await showModalBottomSheet<ImageSource>(
+        context: context,
+        builder: (context) => SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Galería'),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Cámara'),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
 
     if (source != null) {
       final XFile? image = await picker.pickImage(
@@ -56,11 +63,9 @@ class ImagePickerWidget extends StatelessWidget {
       );
 
       if (image != null) {
-        final file = File(image.path);
-        
         // Verificar tamaño del archivo
-        final fileSize = await file.length();
-        if (fileSize > AppConstants.maxImageSizeBytes) {
+        final fileBytes = await image.readAsBytes();
+        if (fileBytes.lengthInBytes > AppConstants.maxImageSizeBytes) {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -71,7 +76,13 @@ class ImagePickerWidget extends StatelessWidget {
           return;
         }
 
-        onImagePicked(file);
+        // En web usar Uint8List, en mobile usar File
+        if (kIsWeb) {
+          onImagePicked(fileBytes);
+        } else {
+          final file = File(image.path);
+          onImagePicked(file);
+        }
       }
     }
   }
@@ -106,10 +117,19 @@ class ImagePickerWidget extends StatelessWidget {
   Widget _buildImage(BuildContext context) {
     // Si hay un archivo seleccionado
     if (imageFile != null) {
-      return Image.file(
-        imageFile!,
-        fit: BoxFit.cover,
-      );
+      if (kIsWeb && imageFile is Uint8List) {
+        // En web, usar Uint8List
+        return Image.memory(
+          imageFile as Uint8List,
+          fit: BoxFit.cover,
+        );
+      } else if (!kIsWeb && imageFile is File) {
+        // En mobile, usar File
+        return Image.file(
+          imageFile as File,
+          fit: BoxFit.cover,
+        );
+      }
     }
 
     // Si hay una URL de imagen

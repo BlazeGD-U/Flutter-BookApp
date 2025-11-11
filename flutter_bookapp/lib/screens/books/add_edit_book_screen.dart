@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/book_model.dart';
@@ -31,7 +32,7 @@ class _AddEditBookScreenState extends State<AddEditBookScreen> {
 
   String _selectedCategory = AppConstants.categories[0];
   String _selectedStatus = AppConstants.bookStatus[0];
-  File? _selectedImage;
+  dynamic _selectedImage; // Puede ser File o Uint8List
 
   bool get isEditing => widget.book != null;
 

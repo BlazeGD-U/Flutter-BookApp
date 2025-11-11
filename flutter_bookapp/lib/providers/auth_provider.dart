@@ -114,7 +114,7 @@ class AuthProvider with ChangeNotifier {
   // Actualizar perfil
   Future<bool> updateProfile({
     required String name,
-    File? imageFile,
+    dynamic imageFile, // Puede ser File o Uint8List
   }) async {
     if (_user == null) return false;
 

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -20,7 +21,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
 
-  File? _selectedImage;
+  dynamic _selectedImage; // Puede ser File o Uint8List
   bool _isChangingPassword = false;
 
   @override

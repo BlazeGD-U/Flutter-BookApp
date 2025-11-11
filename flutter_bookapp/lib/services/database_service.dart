@@ -206,7 +206,7 @@ class DatabaseService {
 
             bool shouldCreateNotification = true;
 
-            if (notificationsSnapshot.exists) {
+                if (notificationsSnapshot.exists) {
               final notificationData = Map<String, dynamic>.from(
                 notificationsSnapshot.value as Map,
               );
@@ -219,16 +219,14 @@ class DatabaseService {
                   notificationData.keys.first,
                 );
 
-                final daysSinceLastNotification = 
-                    DateTime.now().difference(lastNotification.createdAt).inDays;
+                final hoursSinceLastNotification = 
+                    DateTime.now().difference(lastNotification.createdAt).inHours;
                 
-                if (daysSinceLastNotification < 5) {
+                if (hoursSinceLastNotification < 48) {
                   shouldCreateNotification = false;
                 }
               }
-            }
-
-            if (shouldCreateNotification) {
+            }            if (shouldCreateNotification) {
               final random = DateTime.now().millisecondsSinceEpoch % 
                   AppConstants.notificationMessages.length;
               final message = AppConstants.notificationMessages[random]
