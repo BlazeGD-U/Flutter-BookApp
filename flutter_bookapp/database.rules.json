@@ -8,6 +8,7 @@
     },
     "books": {
       ".read": "auth != null",
+      ".indexOn": ["userId"],
       "$bookId": {
         ".write": "auth != null && (data.child('userId').val() === auth.uid || !data.exists())"
       }
@@ -18,6 +19,7 @@
     },
     "notifications": {
       ".read": "auth != null",
+      ".indexOn": ["userId", "bookId"],
       "$notificationId": {
         ".read": "auth != null && data.child('userId').val() === auth.uid",
         ".write": "auth != null && (data.child('userId').val() === auth.uid || !data.exists())"

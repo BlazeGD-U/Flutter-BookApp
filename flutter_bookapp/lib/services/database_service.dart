@@ -181,6 +181,8 @@ class DatabaseService {
 
   Future<void> checkAndCreateNotifications(String userId) async {
     try {
+      print('🔍 [NOTIFICACIONES] Verificando notificaciones para usuario: $userId');
+      
       final snapshot = await _database
           .child(AppConstants.booksPath)
           .orderByChild('userId')
@@ -189,6 +191,7 @@ class DatabaseService {
 
       if (snapshot.exists) {
         final data = Map<String, dynamic>.from(snapshot.value as Map);
+        print('📚 [NOTIFICACIONES] Encontrados ${data.length} libros del usuario');
         
         for (var entry in data.entries) {
           final book = BookModel.fromMap(
@@ -196,7 +199,11 @@ class DatabaseService {
             entry.key,
           );
 
+          print('📖 [NOTIFICACIONES] Verificando libro: "${book.title}" - Status: ${book.status}');
+
           if (book.isPendingForTooLong()) {
+            print('⏰ [NOTIFICACIONES] Libro "${book.title}" está pendiente por demasiado tiempo');
+            
             final notificationsSnapshot = await _database
                 .child(AppConstants.notificationsPath)
                 .orderByChild('bookId')
@@ -206,7 +213,7 @@ class DatabaseService {
 
             bool shouldCreateNotification = true;
 
-                if (notificationsSnapshot.exists) {
+            if (notificationsSnapshot.exists) {
               final notificationData = Map<String, dynamic>.from(
                 notificationsSnapshot.value as Map,
               );
@@ -219,19 +226,27 @@ class DatabaseService {
                   notificationData.keys.first,
                 );
 
-                final hoursSinceLastNotification = 
-                    DateTime.now().difference(lastNotification.createdAt).inHours;
+                // Para pruebas: verificar cada 2 minutos en lugar de 48 horas
+                final minutesSinceLastNotification = 
+                    DateTime.now().difference(lastNotification.createdAt).inMinutes;
                 
-                if (hoursSinceLastNotification < 48) {
+                print('⏳ [NOTIFICACIONES] Última notificación hace: $minutesSinceLastNotification minutos');
+                
+                if (minutesSinceLastNotification < 2) {  // Cambiar a 120 para 2 horas, 2880 para 2 días
                   shouldCreateNotification = false;
+                  print('❌ [NOTIFICACIONES] Esperando 2 minutos antes de crear nueva notificación');
                 }
               }
-            }            if (shouldCreateNotification) {
+            }
+            
+            if (shouldCreateNotification) {
               final random = DateTime.now().millisecondsSinceEpoch % 
                   AppConstants.notificationMessages.length;
               final message = AppConstants.notificationMessages[random]
                   .replaceAll('{title}', book.title);
 
+              print('✅ [NOTIFICACIONES] Creando notificación para "${book.title}": $message');
+              
               await createNotification(
                 userId: userId,
                 bookId: book.id,
@@ -239,10 +254,16 @@ class DatabaseService {
                 message: message,
               );
             }
+          } else {
+            final minutesDiff = DateTime.now().difference(book.updatedAt).inMinutes;
+            print('⏸️ [NOTIFICACIONES] Libro "${book.title}" no está pendiente suficientemente (solo $minutesDiff minutos)');
           }
         }
+      } else {
+        print('📭 [NOTIFICACIONES] No se encontraron libros para el usuario');
       }
     } catch (e) {
+      print('❌ [NOTIFICACIONES] Error: ${e.toString()}');
       throw 'Error al verificar notificaciones: ${e.toString()}';
     }
   }

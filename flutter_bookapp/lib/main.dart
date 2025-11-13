@@ -68,9 +68,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
     // Verificar notificaciones inmediatamente
     _checkNotifications(userId);
     
-    // Luego verificar cada 30 minutos (para detectar cambios frecuentes)
+    // Luego verificar cada 2 minutos para las pruebas
+    // En producción cambiar a Duration(minutes: 30)
     _notificationCheckTimer = Timer.periodic(
-      const Duration(minutes: 30),
+      const Duration(minutes: 2),
       (_) => _checkNotifications(userId),
     );
   }
