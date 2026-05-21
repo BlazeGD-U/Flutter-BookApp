@@ -3,6 +3,7 @@ class UserModel {
   final String name;
   final String email;
   final String? photoUrl;
+  final int totalPoints;
   final DateTime createdAt;
 
   UserModel({
@@ -10,6 +11,7 @@ class UserModel {
     required this.name,
     required this.email,
     this.photoUrl,
+    this.totalPoints = 0,
     required this.createdAt,
   });
 
@@ -19,6 +21,7 @@ class UserModel {
       name: map['name'] ?? '',
       email: map['email'] ?? '',
       photoUrl: map['photoUrl'],
+      totalPoints: (map['totalPoints'] as num?)?.toInt() ?? 0,
       createdAt: DateTime.parse(map['createdAt'] ?? DateTime.now().toIso8601String()),
     );
   }
@@ -28,6 +31,7 @@ class UserModel {
       'name': name,
       'email': email,
       'photoUrl': photoUrl,
+      'totalPoints': totalPoints,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -37,6 +41,7 @@ class UserModel {
     String? name,
     String? email,
     String? photoUrl,
+    int? totalPoints,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -44,6 +49,7 @@ class UserModel {
       name: name ?? this.name,
       email: email ?? this.email,
       photoUrl: photoUrl ?? this.photoUrl,
+      totalPoints: totalPoints ?? this.totalPoints,
       createdAt: createdAt ?? this.createdAt,
     );
   }

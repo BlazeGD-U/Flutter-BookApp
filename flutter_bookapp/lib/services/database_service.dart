@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:uuid/uuid.dart';
 import '../models/book_model.dart';
 import '../models/notification_model.dart';
+import '../models/user_model.dart';
 import '../utils/constants.dart';
 
 class DatabaseService {
@@ -176,6 +177,41 @@ class DatabaseService {
           .update({'read': true});
     } catch (e) {
       throw 'Error al marcar la notificación: ${e.toString()}';
+    }
+  }
+
+  Stream<UserModel> getUserStream(String userId) {
+    return _database.child(AppConstants.usersPath).child(userId).onValue.map(
+      (event) {
+        if (event.snapshot.value == null) {
+          throw 'Usuario no encontrado';
+        }
+        return UserModel.fromMap(
+          Map<String, dynamic>.from(event.snapshot.value as Map),
+          userId,
+        );
+      },
+    );
+  }
+
+  Future<void> awardReadingPoints({
+    required String userId,
+    required String bookId,
+    required int currentBookPoints,
+    required int currentUserPoints,
+    int points = AppConstants.readingSessionPoints,
+  }) async {
+    try {
+      await _database.child(AppConstants.booksPath).child(bookId).update({
+        'readingPoints': currentBookPoints + points,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+
+      await _database.child(AppConstants.usersPath).child(userId).update({
+        'totalPoints': currentUserPoints + points,
+      });
+    } catch (e) {
+      throw 'Error al guardar los puntos: ${e.toString()}';
     }
   }
 

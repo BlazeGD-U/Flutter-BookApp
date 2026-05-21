@@ -1,17 +1,20 @@
-import 'dart:io';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/database_service.dart';
 import '../services/storage_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
   final StorageService _storageService = StorageService();
+  final DatabaseService _databaseService = DatabaseService();
 
   UserModel? _user;
   bool _isLoading = false;
   String? _error;
+  StreamSubscription<UserModel>? _userSubscription;
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
@@ -28,6 +31,8 @@ class AuthProvider with ChangeNotifier {
       if (firebaseUser != null) {
         await loadUserData();
       } else {
+        _userSubscription?.cancel();
+        _userSubscription = null;
         _user = null;
         notifyListeners();
       }
@@ -38,11 +43,32 @@ class AuthProvider with ChangeNotifier {
   Future<void> loadUserData() async {
     try {
       _user = await _authService.getCurrentUserData();
+      if (_user != null) {
+        _listenToUserUpdates(_user!.id);
+      }
       notifyListeners();
     } catch (e) {
       _error = e.toString();
       notifyListeners();
     }
+  }
+
+  void _listenToUserUpdates(String userId) {
+    _userSubscription?.cancel();
+    _userSubscription = _databaseService.getUserStream(userId).listen(
+      (user) {
+        _user = user;
+        notifyListeners();
+      },
+      onError: (error) {
+        _error = error.toString();
+        notifyListeners();
+      },
+    );
+  }
+
+  Future<void> refreshUserData() async {
+    await loadUserData();
   }
 
   // Registro
@@ -61,6 +87,10 @@ class AuthProvider with ChangeNotifier {
         email: email,
         password: password,
       );
+
+      if (_user != null) {
+        _listenToUserUpdates(_user!.id);
+      }
 
       _isLoading = false;
       notifyListeners();
@@ -88,6 +118,10 @@ class AuthProvider with ChangeNotifier {
         password: password,
       );
 
+      if (_user != null) {
+        _listenToUserUpdates(_user!.id);
+      }
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -102,6 +136,8 @@ class AuthProvider with ChangeNotifier {
   // Cerrar sesión
   Future<void> signOut() async {
     try {
+      _userSubscription?.cancel();
+      _userSubscription = null;
       await _authService.signOut();
       _user = null;
       notifyListeners();
@@ -186,6 +222,12 @@ class AuthProvider with ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _userSubscription?.cancel();
+    super.dispose();
   }
 }
 

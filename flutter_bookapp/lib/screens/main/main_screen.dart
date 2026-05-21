@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../providers/reading_session_provider.dart';
+import '../../widgets/reading_lock_overlay.dart';
 import '../home/home_screen.dart';
 import '../books/books_screen.dart';
 import '../profile/profile_screen.dart';
@@ -46,9 +48,20 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
+    final sessionActive = context.watch<ReadingSessionProvider>().isActive;
+
+    return PopScope(
+      canPop: !sessionActive,
+      child: Scaffold(
+        body: Stack(
+          children: [
+            _screens[_currentIndex],
+            const ReadingLockOverlay(),
+          ],
+        ),
+        bottomNavigationBar: sessionActive
+            ? null
+            : BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
@@ -72,6 +85,7 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Perfil',
           ),
         ],
+      ),
       ),
     );
   }

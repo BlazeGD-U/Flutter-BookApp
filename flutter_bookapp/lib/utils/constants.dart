@@ -50,5 +50,8 @@ class AppConstants {
   // Límites
   static const int maxImageSizeBytes = 5 * 1024 * 1024; // 5MB
   static const int daysUntilNotification = 5;
+
+  // Gamificación
+  static const int readingSessionPoints = 10;
 }
 

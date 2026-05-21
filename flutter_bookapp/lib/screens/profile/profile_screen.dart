@@ -124,6 +124,33 @@ class ProfileScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppConstants.primaryColor.withOpacity(0.25),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.stars_rounded,
+                          color: AppConstants.primaryColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${user.totalPoints} puntos',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   
                   // Email

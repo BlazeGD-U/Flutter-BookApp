@@ -254,6 +254,27 @@ class BookProvider with ChangeNotifier {
     }
   }
 
+  // Otorgar puntos por sesión de lectura completada
+  Future<bool> awardReadingSessionPoints({
+    required String userId,
+    required BookModel book,
+    required int currentUserPoints,
+  }) async {
+    try {
+      await _databaseService.awardReadingPoints(
+        userId: userId,
+        bookId: book.id,
+        currentBookPoints: book.readingPoints,
+        currentUserPoints: currentUserPoints,
+      );
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
   // Limpiar error
   void clearError() {
     _error = null;

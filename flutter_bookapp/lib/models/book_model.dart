@@ -7,6 +7,7 @@ class BookModel {
   final String status;
   final String description;
   final String? imageUrl;
+  final int readingPoints;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -19,6 +20,7 @@ class BookModel {
     required this.status,
     required this.description,
     this.imageUrl,
+    this.readingPoints = 0,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -33,6 +35,7 @@ class BookModel {
       status: map['status'] ?? 'Pendiente',
       description: map['description'] ?? '',
       imageUrl: map['imageUrl'],
+      readingPoints: (map['readingPoints'] as num?)?.toInt() ?? 0,
       createdAt: DateTime.parse(map['createdAt'] ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(map['updatedAt'] ?? DateTime.now().toIso8601String()),
     );
@@ -47,6 +50,7 @@ class BookModel {
       'status': status,
       'description': description,
       'imageUrl': imageUrl,
+      'readingPoints': readingPoints,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -61,6 +65,7 @@ class BookModel {
     String? status,
     String? description,
     String? imageUrl,
+    int? readingPoints,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -73,6 +78,7 @@ class BookModel {
       status: status ?? this.status,
       description: description ?? this.description,
       imageUrl: imageUrl ?? this.imageUrl,
+      readingPoints: readingPoints ?? this.readingPoints,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

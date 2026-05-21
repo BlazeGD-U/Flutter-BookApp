@@ -1,5 +1,3 @@
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/book_model.dart';
@@ -169,7 +167,7 @@ class _AddEditBookScreenState extends State<AddEditBookScreen> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: _selectedCategory,
+                    initialValue: _selectedCategory,
                     decoration: const InputDecoration(
                       hintText: 'Select category',
                     ),
@@ -196,7 +194,7 @@ class _AddEditBookScreenState extends State<AddEditBookScreen> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: _selectedStatus,
+                    initialValue: _selectedStatus,
                     decoration: const InputDecoration(
                       hintText: 'Select status',
                     ),

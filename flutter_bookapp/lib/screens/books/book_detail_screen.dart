@@ -7,6 +7,7 @@ import '../../providers/book_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/media_recommendations_section.dart';
 import 'add_edit_book_screen.dart';
 
 class BookDetailScreen extends StatefulWidget {
@@ -202,6 +203,9 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                         updatedBook.description,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
+                      const SizedBox(height: 32),
+
+                      MediaRecommendationsSection(book: updatedBook),
                       const SizedBox(height: 32),
                       
                       // Botones de acción
