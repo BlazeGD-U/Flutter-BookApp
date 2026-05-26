@@ -46,7 +46,14 @@ class AppConstants {
   static const String booksPath = 'books';
   static const String recommendationsPath = 'recommendations';
   static const String notificationsPath = 'notifications';
-  
+  static const String globalChatPath = 'globalChat';
+  static const String globalChatMetaPath = 'globalChatMeta';
+
+  // Chat global (comunidad)
+  static const int chatMaxWordsPerMessage = 200;
+  static const int chatCooldownSeconds = 120;
+  static const int chatRetentionHours = 24;
+
   // Límites
   static const int maxImageSizeBytes = 5 * 1024 * 1024; // 5MB
   static const int daysUntilNotification = 5;

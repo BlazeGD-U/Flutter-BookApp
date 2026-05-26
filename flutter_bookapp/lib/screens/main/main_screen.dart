@@ -7,7 +7,9 @@ import '../../providers/reading_session_provider.dart';
 import '../../widgets/reading_lock_overlay.dart';
 import '../home/home_screen.dart';
 import '../books/books_screen.dart';
+import '../community/community_screen.dart';
 import '../profile/profile_screen.dart';
+import '../../providers/chat_provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -22,6 +24,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const BooksScreen(),
+    const CommunityScreen(),
     const ProfileScreen(),
   ];
 
@@ -35,11 +38,13 @@ class _MainScreenState extends State<MainScreen> {
     final authProvider = context.read<AuthProvider>();
     final bookProvider = context.read<BookProvider>();
     final notificationProvider = context.read<NotificationProvider>();
+    final chatProvider = context.read<ChatProvider>();
 
     if (authProvider.user != null) {
-      // Inicializar streams de libros y notificaciones
+      // Inicializar streams de libros, notificaciones y chat
       bookProvider.initializeStreams(authProvider.user!.id);
       notificationProvider.initializeStream(authProvider.user!.id);
+      chatProvider.initialize(authProvider.user!.id);
       
       // Verificar libros pendientes para notificaciones
       notificationProvider.checkPendingBooks(authProvider.user!.id);
@@ -78,6 +83,11 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.book_outlined),
             activeIcon: Icon(Icons.book),
             label: 'Libros',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.forum_outlined),
+            activeIcon: Icon(Icons.forum),
+            label: 'Comunidad',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
